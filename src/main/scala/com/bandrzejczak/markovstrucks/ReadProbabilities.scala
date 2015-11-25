@@ -1,5 +1,6 @@
 package com.bandrzejczak.markovstrucks
 
+import scala.annotation.tailrec
 import scala.collection.immutable.Map
 
 case class ReadProbabilities(correctCharacter: Char, mistakes: Map[Char, Double]) {
@@ -11,6 +12,7 @@ case class ReadProbabilities(correctCharacter: Char, mistakes: Map[Char, Double]
     chooseCharacter(possibleOutcomes.toList, Math.random())
   }
 
+  @tailrec
   private def chooseCharacter(possibleOutcomes: List[(Char, Double)], valueLeft: Double): Char = possibleOutcomes match {
     case (character, _) :: Nil => character
     case (character, probability) :: rest =>
@@ -18,6 +20,7 @@ case class ReadProbabilities(correctCharacter: Char, mistakes: Map[Char, Double]
         character
       else
         chooseCharacter(rest, valueLeft - probability)
+    case _ => throw new RuntimeException("Cannot read a character")
   }
 }
 
