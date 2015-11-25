@@ -52,8 +52,8 @@ class StatesModelSpec extends FlatSpec with Matchers {
 
     // then
     model.stateTransitionProbabilities shouldBe Map(
-      StatesModel.InitialState -> Map('a' -> 1.0),
-      'a' -> Map('$' -> 1.0)
+      StatesModel.InitialState -> List('a'),
+      'a' -> List('$')
     )
   }
 
@@ -63,9 +63,9 @@ class StatesModelSpec extends FlatSpec with Matchers {
 
     // then
     model.stateTransitionProbabilities shouldBe Map(
-      StatesModel.InitialState -> Map('a' -> 0.5, 'b' -> 0.5),
-      'a' -> Map(StatesModel.EndState -> 1.0),
-      'b' -> Map(StatesModel.EndState -> 1.0)
+      StatesModel.InitialState -> List('b', 'a'),
+      'a' -> List(StatesModel.EndState),
+      'b' -> List(StatesModel.EndState)
     )
   }
 
@@ -75,10 +75,10 @@ class StatesModelSpec extends FlatSpec with Matchers {
 
     // then
     model.stateTransitionProbabilities shouldBe Map(
-      StatesModel.InitialState -> Map('a' -> 1.0),
-      'a' -> Map('b' -> 1.0),
-      'b' -> Map('c' -> 1.0),
-      'c' -> Map(StatesModel.EndState -> 1.0)
+      StatesModel.InitialState -> List('a'),
+      'a' -> List('b'),
+      'b' -> List('c'),
+      'c' -> List(StatesModel.EndState)
     )
   }
 
@@ -88,13 +88,13 @@ class StatesModelSpec extends FlatSpec with Matchers {
 
     // then
     model.stateTransitionProbabilities shouldBe Map(
-      StatesModel.InitialState -> Map('a' -> 1.0/3, 'c' -> 1.0/3, 'x' -> 1.0/3),
-      'a' -> Map('b' -> 0.5, StatesModel.EndState -> 0.5),
-      'b' -> Map('a' -> 0.5, 'c' -> 0.5),
-      'c' -> Map('b' -> 0.5, StatesModel.EndState -> 0.5),
-      'x' -> Map('y' -> 1.0),
-      'y' -> Map('z' -> 1.0),
-      'z' -> Map(StatesModel.EndState -> 1.0)
+      StatesModel.InitialState -> List('x', 'c', 'a'),
+      'a' -> List(StatesModel.EndState, 'b'),
+      'b' -> List('a', 'c'),
+      'c' -> List('b', StatesModel.EndState),
+      'x' -> List('y'),
+      'y' -> List('z'),
+      'z' -> List(StatesModel.EndState)
     )
   }
 
@@ -144,6 +144,14 @@ class StatesModelSpec extends FlatSpec with Matchers {
 
     // then
     model.probabilityOfTransition('c', StatesModel.EndState) shouldBe 1.0/3
+  }
+
+  it should "compute probability of transition to a state that appears twice in a numbers" in {
+    // when
+    val model: StatesModel = new StatesModel(List("a", "a"))
+
+    // then
+    model.probabilityOfTransition(StatesModel.InitialState, 'a') shouldBe 1.0
   }
 
 }

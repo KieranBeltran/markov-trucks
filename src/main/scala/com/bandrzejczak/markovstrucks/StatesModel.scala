@@ -6,25 +6,27 @@ class StatesModel(registrationNumbers: List[String]) {
 
   val availableStates = registrationNumbers.foldLeft(Set.empty[Char])(_ ++ _.toSet)
 
-  lazy val stateTransitionProbabilities: Map[Char, Map[Char, Double]] = computeStateTransitionProbabilities()
+  lazy val stateTransitionProbabilities: Map[Char, List[Char]] = computeStateTransitionProbabilities()
 
-  private def computeStateTransitionProbabilities(): Map[Char, Map[Char, Double]] = {
-    registrationNumbers.foldLeft(Map.empty[Char, Map[Char, Double]]) {
+  private def computeStateTransitionProbabilities(): Map[Char, List[Char]] = {
+    registrationNumbers.foldLeft(Map.empty[Char, List[Char]]) {
       case (probabilities, registrationNumber) =>
         val transitions = (InitialState + registrationNumber).zip(registrationNumber + EndState)
         transitions.foldLeft(probabilities)(addTransition)
     }
   }
 
-  private def addTransition(probabilities: Map[Char, Map[Char, Double]], transition: (Char, Char)): Map[Char, Map[Char, Double]] = {
+  private def addTransition(probabilities: Map[Char, List[Char]], transition: (Char, Char)): Map[Char, List[Char]] = {
     probabilities.get(transition._1) match {
-      case Some(p) => probabilities + (transition._1 -> (p + (transition._2 -> 0.0)).mapValues(_ => 1.0 / (p.size + 1)))
-      case None => probabilities + (transition._1 -> Map(transition._2 -> 1.0))
+      case Some(p) => probabilities + (transition._1 -> (transition._2 :: p))
+      case None => probabilities + (transition._1 -> List(transition._2))
     }
   }
 
   def probabilityOfTransition(from: Char, to: Char): Double = {
-    stateTransitionProbabilities.getOrElse(from, Map()).getOrElse(to, 0.0)
+    stateTransitionProbabilities.get(from).map { transitionsTo =>
+      transitionsTo.count(_ == to).toDouble / transitionsTo.size
+    }.getOrElse(0.0)
   }
 
   def add(registrationNumber: String): StatesModel = {
