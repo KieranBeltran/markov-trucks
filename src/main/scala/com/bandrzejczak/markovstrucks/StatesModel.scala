@@ -24,7 +24,7 @@ class StatesModel(registrationNumbers: List[String]) {
   }
 
   def probabilityOfTransition(from: Char, to: Char): Double = {
-    stateTransitionProbabilities.get(from).map(_.getOrElse(to, 0.0)).getOrElse(0.0)
+    stateTransitionProbabilities.getOrElse(from, Map()).getOrElse(to, 0.0)
   }
 
   def add(registrationNumber: String): StatesModel = {
