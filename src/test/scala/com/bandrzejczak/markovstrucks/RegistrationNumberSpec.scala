@@ -6,7 +6,7 @@ class RegistrationNumberSpec extends FlatSpec with Matchers{
 
   "Registration number" should "be read properly with an empty mistakes model" in {
     // when
-    val readValue = RegistrationNumber("ANYNUMBER").read(ReadProbabilities.emptyMistakesModel)
+    val readValue = RegistrationNumber("ANYNUMBER").read(ReadProbabilities.emptyObservationModel)
 
     // then
     readValue shouldBe "ANYNUMBER"

@@ -4,11 +4,11 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Map
 
 case class ReadProbabilities(correctCharacter: Char, mistakes: Map[Char, Double]) {
-  private val probabilitiesSum: Double = mistakes.values.sum
-  require(0 <= probabilitiesSum && probabilitiesSum <= 1)
+  private val mistakesProbabilitiesSum: Double = mistakes.values.sum
+  lazy val possibleOutcomes = mistakes + (correctCharacter -> (1 - mistakesProbabilitiesSum))
+  require(0 <= mistakesProbabilitiesSum && mistakesProbabilitiesSum <= 1)
 
   def read(): Char = {
-    val possibleOutcomes = mistakes + (correctCharacter -> (1 - probabilitiesSum))
     chooseCharacter(possibleOutcomes.toList, Math.random())
   }
 
@@ -25,6 +25,18 @@ case class ReadProbabilities(correctCharacter: Char, mistakes: Map[Char, Double]
 }
 
 object ReadProbabilities {
-  type MistakesModel = Map[Char, ReadProbabilities]
-  def emptyMistakesModel: MistakesModel = Map()
+  type ObservationModel = Map[Char, ReadProbabilities]
+  def emptyObservationModel: ObservationModel = Map()
+
+  implicit class ObservationModelOps(observationModel: ObservationModel) {
+    def probabilityOf(char: Char) = {
+      new ProbabilityOf(observationModel, char)
+    }
+  }
+
+  class ProbabilityOf(observationModel: ObservationModel, char: Char) {
+    def inState(state: Char) = {
+      observationModel(state).possibleOutcomes.getOrElse(char, 0.0)
+    }
+  }
 }
