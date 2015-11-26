@@ -154,4 +154,13 @@ class StatesModelSpec extends FlatSpec with Matchers {
     model.probabilityOfTransition(StatesModel.InitialState, 'a') shouldBe 1.0
   }
 
+  it should "compute probability of transition to a state that appears twice in a numbers amongst others" in {
+    // when
+    val model: StatesModel = new StatesModel(List("a", "a", "b"))
+
+    // then
+    model.probabilityOfTransition(StatesModel.InitialState, 'a') shouldBe 1.0/3*2
+    model.probabilityOfTransition(StatesModel.InitialState, 'b') shouldBe 1.0/3
+  }
+
 }
