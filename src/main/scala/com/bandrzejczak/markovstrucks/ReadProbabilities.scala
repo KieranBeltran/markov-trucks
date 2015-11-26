@@ -36,7 +36,7 @@ object ReadProbabilities {
 
   class ProbabilityOf(observationModel: ObservationModel, char: Char) {
     def inState(state: Char) = {
-      observationModel(state).possibleOutcomes.getOrElse(char, 0.0)
+      observationModel.get(state).map(_.possibleOutcomes.getOrElse(char, 0.0)).getOrElse(if(char == state) 1.0 else 0.0)
     }
   }
 }

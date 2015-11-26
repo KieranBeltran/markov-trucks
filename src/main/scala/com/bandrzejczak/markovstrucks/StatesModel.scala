@@ -4,7 +4,7 @@ import com.bandrzejczak.markovstrucks.StatesModel.{EndState, InitialState}
 
 class StatesModel(registrationNumbers: List[String]) {
 
-  val availableStates = registrationNumbers.foldLeft(Set(InitialState, EndState))(_ ++ _.toSet)
+  val availableStates = registrationNumbers.foldLeft(Set.empty[Char])(_ ++ _.toSet)
 
   lazy val stateTransitionProbabilities: Map[Char, List[Char]] = computeStateTransitionProbabilities()
 
