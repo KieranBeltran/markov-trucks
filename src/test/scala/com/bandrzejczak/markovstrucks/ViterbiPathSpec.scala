@@ -12,7 +12,7 @@ class ViterbiPathSpec extends FlatSpec with Matchers{
         'b' -> ReadProbabilities('b', Map()),
         'c' -> ReadProbabilities('c', Map())
       )
-    ).forObservations("abc") shouldBe "abc"
+    ).forObservations2("abc") shouldBe "abc"
   }
 
   it should "test2" in {
@@ -24,7 +24,7 @@ class ViterbiPathSpec extends FlatSpec with Matchers{
         'd' -> ReadProbabilities('d', Map('b' -> 0.39)),
         'c' -> ReadProbabilities('c', Map())
       )
-    ).forObservations("adc") shouldBe "adc"
+    ).forObservations2("adc") shouldBe "adc"
   }
 
 }

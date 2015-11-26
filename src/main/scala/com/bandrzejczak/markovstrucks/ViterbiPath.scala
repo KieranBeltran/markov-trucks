@@ -20,6 +20,23 @@ class ViterbiPath(statesModel: StatesModel, observationModel: ObservationModel) 
         (bestState._2, actualNumber + bestState._1)
     }._2.tail
   }
+
+  def forObservations2(registrationNumber: String): String = {
+    def recurse(observationsReverse: List[Char], currentState: Char): (String, Double) = observationsReverse match {
+      case last :: Nil => ("", 1.0)
+      case observation :: rest =>
+//        println(s"Checking $observation, last state = $")
+//        statesModel.availableStates.map { currentState =>
+          val bestPrevious = statesModel.availableStates.map { previousState =>
+            val recursed = recurse(rest, previousState)
+            (recursed._1, recursed._2 * statesModel.probabilityOfTransition(previousState, currentState))
+          }.maxBy(_._2)
+        (bestPrevious._1 + currentState, bestPrevious._2)
+//          (currentState + bestPrevious._1, bestPrevious._2)
+//        }.maxBy(_._2)
+    }
+    recurse(("@" + registrationNumber + '$').reverse.toList, '$')._1.init
+  }
 }
 
 object ViterbiPath {
