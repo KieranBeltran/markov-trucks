@@ -40,6 +40,6 @@ class StatesModel(registrationNumbers: List[String]) {
 }
 
 object StatesModel {
-  val InitialState: Char = '\0'
+  val InitialState: Char = '#'
   val EndState: Char = '$'
 }
