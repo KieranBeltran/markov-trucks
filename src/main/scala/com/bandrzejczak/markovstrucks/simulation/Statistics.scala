@@ -15,27 +15,28 @@ class Statistics extends ActorPublisher[StatisticsInfo] {
   def gatherStatistics(
                         warehouseRegistry: Map[String, String], // readNumber => actualNumber
                         mistakenlyLetOut: Int = 0,
-                        denied: Int = 0
+                        denied: Int = 0,
+                        successful: Int = 0
                       ): Receive = {
-    reportState(warehouseRegistry, mistakenlyLetOut, denied);
+    reportState(warehouseRegistry, mistakenlyLetOut, denied, successful);
     {
       case Registered(actual, read) =>
         registrationRead(actual, read)
-        context.become(gatherStatistics(warehouseRegistry + (read -> actual), mistakenlyLetOut, denied))
+        context.become(gatherStatistics(warehouseRegistry + (read -> actual), mistakenlyLetOut, denied, successful))
 
       case letOut @ LetOut(actual, read, _) =>
         leaveRead(actual, read)
-        handleLeave(warehouseRegistry, mistakenlyLetOut, denied, letOut)
+        handleLeave(warehouseRegistry, mistakenlyLetOut, denied, successful, letOut)
 
       case Denied(actual, read) =>
         leaveRead(actual, read)
-        context.become(gatherStatistics(warehouseRegistry, mistakenlyLetOut, denied + 1))
+        context.become(gatherStatistics(warehouseRegistry, mistakenlyLetOut, denied + 1, successful))
     }
   }
 
-  def reportState(warehouseRegistry: Map[String, String], mistakenlyLetOut: Int, denied: Int): Unit = {
+  def reportState(warehouseRegistry: Map[String, String], mistakenlyLetOut: Int, denied: Int, successful: Int): Unit = {
     ifActive {
-      onNext(WarehouseState(warehouseRegistry.keys, mistakenlyLetOut, denied))
+      onNext(WarehouseState(warehouseRegistry.keys, mistakenlyLetOut, denied, successful))
     }
   }
 
@@ -51,26 +52,29 @@ class Statistics extends ActorPublisher[StatisticsInfo] {
     }
   }
 
-  def handleLeave(warehouseRegistry: Map[String, String], mistakenlyLetOut: Int, denied: Int, letOut: LetOut): Unit = {
+  def handleLeave(warehouseRegistry: Map[String, String], mistakenlyLetOut: Int, denied: Int, successful: Int, letOut: LetOut): Unit = {
     val ActualNumber = letOut.actualNumber
     warehouseRegistry.get(letOut.foundNumber) match {
       case Some(ActualNumber) => //we let out the right one
         context.become(gatherStatistics(
           warehouseRegistry - letOut.foundNumber,
           mistakenlyLetOut,
-          denied
+          denied,
+          successful + 1
         ))
       case Some(_) => //we let out some other
         context.become(gatherStatistics(
           warehouseRegistry - letOut.foundNumber,
           mistakenlyLetOut + 1,
-          denied
+          denied,
+          successful
         ))
       case None => //we let out some nonexistent container!
         context.become(gatherStatistics(
           warehouseRegistry,
           mistakenlyLetOut + 1,
-          denied
+          denied,
+          successful
         ))
     }
   }
@@ -96,7 +100,7 @@ object Statistics extends DefaultJsonProtocol with SprayJsonSupport {
     implicit def ReadFormat = jsonFormat2(Read)
     implicit def RegistrationReadFormat = jsonFormat1(RegistrationRead)
     implicit def LeaveReadFormat = jsonFormat1(LeaveRead)
-    implicit def WarehouseStateFormat = jsonFormat3(WarehouseState)
+    implicit def WarehouseStateFormat = jsonFormat4(WarehouseState)
 
     def write: String = this match {
       case x: RegistrationRead => x.toJson.prettyPrint
@@ -108,6 +112,6 @@ object Statistics extends DefaultJsonProtocol with SprayJsonSupport {
   case class Read(actualNumber: String, readNumber: String)
   case class RegistrationRead(in: Read) extends StatisticsInfo
   case class LeaveRead(out: Read) extends StatisticsInfo
-  case class WarehouseState(containers: Iterable[String], mistakenlyLetOut: Int, denied: Int) extends StatisticsInfo
+  case class WarehouseState(containers: Iterable[String], mistakenlyLetOut: Int, denied: Int, successful: Int) extends StatisticsInfo
 
 }

@@ -30,8 +30,20 @@ object Main extends App with DefaultJsonProtocol with SprayJsonSupport {
       } ~
       path("start") {
         post {
-          implicit def ReadProbabilitiesFormat = jsonFormat2(ReadProbabilities.apply)
-          implicit def SimulationSettingsFormat = jsonFormat9(SimulationSettings)
+          implicit def ReadProbabilitiesFormat = jsonFormat(ReadProbabilities.apply, "correctCharacter", "mistakes")
+          implicit def SimulationSettingsFormat = jsonFormat(
+            SimulationSettings,
+            "minRegistrationsPause",
+            "maxRegistrationsPause",
+            "minWarehouseStay",
+            "maxWarehouseStay",
+            "registrationNumberLength",
+            "lettersInRegistrationNumber",
+            "digitsInRegistrationNumber",
+            "simulationTimeout",
+            "readProbabilities"
+          )
+
           entity(as[SimulationSettings]) { settings =>
             system.actorOf(
               Simulation.props(

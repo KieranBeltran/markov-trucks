@@ -36,7 +36,7 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.requestNext()
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0, 0)
   }
 
   it should "report leave read for letting container out" in {
@@ -50,7 +50,7 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.requestNext() shouldBe LeaveRead(Read("ABC", "XYZ"))
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
   }
 
   it should "report one mistake for letting out container that was never registered" in {
@@ -64,7 +64,7 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.requestNext()
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
   }
 
   it should "report one mistake for letting out different container" in {
@@ -74,14 +74,14 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.request(4)
     statistics ! Registered("ABC", "XYZ")
     mockSink.requestNext()
-    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0, 0)
 
     // when
     statistics ! LetOut("XYZ", "XYZ", "XYZ")
     mockSink.requestNext()
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
   }
 
   it should "not report any mistakes when letting out the right container" in {
@@ -91,14 +91,14 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.request(4)
     statistics ! Registered("ABC", "XYZ")
     mockSink.requestNext()
-    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0, 0)
 
     // when
     statistics ! LetOut("ABC", "DEF", "XYZ")
     mockSink.requestNext()
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set(), 0, 0)
+    mockSink.requestNext() shouldBe WarehouseState(Set(), 0, 0, 1)
   }
 
   it should "report leave read if some container was denied" in {
@@ -125,7 +125,7 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     mockSink.requestNext()
 
     // then
-    mockSink.requestNext() shouldBe WarehouseState(Set(), 0, 1)
+    mockSink.requestNext() shouldBe WarehouseState(Set(), 0, 1, 0)
   }
 
 }
