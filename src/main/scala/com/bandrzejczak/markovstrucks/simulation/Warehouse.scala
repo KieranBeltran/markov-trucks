@@ -17,6 +17,10 @@ class Warehouse(observationModel: ObservationModel, statistics: ActorRef) extend
 
     case Out(registrationNumber) =>
       unregisterContainer(statesModel, registrationNumber)
+
+    case Remove(foundNumber) =>
+      context.become(warehouse(statesModel.remove(foundNumber)))
+
   }
 
   def registerContainer(statesModel: StatesModel, registrationNumber: RegistrationNumber): Unit = {
@@ -33,11 +37,12 @@ class Warehouse(observationModel: ObservationModel, statistics: ActorRef) extend
 
   def unregisterContainer(statesModel: StatesModel, registrationNumber: RegistrationNumber): Unit = {
     val readNumber = registrationNumber.read(observationModel)
+    import scala.concurrent.ExecutionContext.Implicits.global
     MostProbablePath.withModels(statesModel, observationModel)
-      .forObservations(readNumber) match {
+      .forObservations(readNumber).onSuccess {
       case Some(foundNumber) =>
         statistics ! LetOut(registrationNumber.number, readNumber, foundNumber)
-        context.become(warehouse(statesModel.remove(foundNumber)))
+        self ! Remove(foundNumber)
       case None =>
         statistics ! Denied(registrationNumber.number, readNumber)
     }
@@ -49,6 +54,7 @@ object Warehouse {
 
   case class In(registrationNumber: RegistrationNumber)
   case class Out(registrationNumber: RegistrationNumber)
+  case class Remove(foundNumber: String)
 
   case class Registered(actualNumber: String, readNumber: String)
   case class LetOut(actualNumber: String, readNumber: String, foundNumber: String)

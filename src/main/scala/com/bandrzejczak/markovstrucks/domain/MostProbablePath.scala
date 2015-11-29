@@ -3,6 +3,8 @@ package com.bandrzejczak.markovstrucks.domain
 import com.bandrzejczak.markovstrucks.domain.ReadProbabilities.ObservationModel
 import com.bandrzejczak.markovstrucks.domain.StatesModel.{EndState, InitialState}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class MostProbablePath private(statesModel: StatesModel, observationModel: ObservationModel) {
 
@@ -12,7 +14,7 @@ class MostProbablePath private(statesModel: StatesModel, observationModel: Obser
 
   case class PathProbability(path: String, probability: Double)
 
-  def forObservations(registrationNumber: String): Option[String] = {
+  def forObservations(registrationNumber: String): Future[Option[String]] = Future {
     // observations list is reversed so the last operation is always first in the list
     val observations = (InitialState + registrationNumber + EndState).reverse.toList
     mostProbablePathEndingInState(EndState)

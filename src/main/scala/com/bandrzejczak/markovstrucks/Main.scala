@@ -32,7 +32,7 @@ object Main extends App {
       } ~
       path("start") {
         get {
-          system.scheduler.schedule(1.second, 100.millis) {
+          system.scheduler.schedule(1.second, 500.millis) {
             warehouse ! In(RegistrationNumber(Random.alphanumeric.take(6).mkString.toUpperCase))
           }
           complete("ok")
