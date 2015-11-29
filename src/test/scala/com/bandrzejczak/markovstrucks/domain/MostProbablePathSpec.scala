@@ -1,14 +1,15 @@
 package com.bandrzejczak.markovstrucks.domain
 
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers, OptionValues}
 
-class MostProbablePathSpec extends FlatSpec with Matchers with OptionValues {
+class MostProbablePathSpec extends FlatSpec with Matchers with ScalaFutures with OptionValues {
 
   "Most probable path" should "find the only path in the model" in {
     MostProbablePath.withModels(
       new StatesModel(List("abc")),
       Map()
-    ).forObservations("abc").value shouldBe "abc"
+    ).forObservations("abc").futureValue.value shouldBe "abc"
   }
 
   it should "find the only path in the model with mistakes defined" in {
@@ -19,7 +20,7 @@ class MostProbablePathSpec extends FlatSpec with Matchers with OptionValues {
         'b' -> ReadProbabilities('b', Map('y' -> 0.1)),
         'c' -> ReadProbabilities('c', Map('z' -> 0.1))
       )
-    ).forObservations("xyz").value shouldBe "abc"
+    ).forObservations("xyz").futureValue.value shouldBe "abc"
   }
 
   it should "find the correct path in the confusing model with almost identical characters" in {
@@ -31,7 +32,7 @@ class MostProbablePathSpec extends FlatSpec with Matchers with OptionValues {
         'd' -> ReadProbabilities('d', Map('b' -> 0.41)), // 41% = b, 59% = d
         'c' -> ReadProbabilities('c', Map())
       )
-    ).forObservations("adc").value shouldBe "abc"
+    ).forObservations("adc").futureValue.value shouldBe "abc"
   }
 
   it should "not find a correct path if the model has no connections to end state" in {
@@ -48,14 +49,14 @@ class MostProbablePathSpec extends FlatSpec with Matchers with OptionValues {
     MostProbablePath.withModels(
       modelWithoutEndState, //model contains both abc and adc paths
       Map()
-    ).forObservations("ab") shouldBe 'empty
+    ).forObservations("ab").futureValue shouldBe 'empty
   }
 
   it should "not find a correct path if observations have no connection to the model" in {
     MostProbablePath.withModels(
       new StatesModel(List("abc", "adc")), //model contains both abc and adc paths
       Map()
-    ).forObservations("axc") shouldBe 'empty
+    ).forObservations("axc").futureValue shouldBe 'empty
   }
 
 }

@@ -5,7 +5,9 @@ import com.bandrzejczak.markovstrucks.domain.ReadProbabilities.ObservationModel
 import com.bandrzejczak.markovstrucks.domain.{MostProbablePath, RegistrationNumber, StatesModel}
 import com.bandrzejczak.markovstrucks.simulation.Warehouse._
 
-class Warehouse(observationModel: ObservationModel, simulationSettings: SimulationSettings, statistics: ActorRef) extends Actor {
+class Warehouse(simulationSettings: SimulationSettings, statistics: ActorRef) extends Actor {
+  private val observationModel: ObservationModel = simulationSettings.observationModel
+
   override def receive: Receive = warehouse(StatesModel.empty)
 
   def warehouse(statesModel: StatesModel): Receive = {
@@ -47,8 +49,8 @@ class Warehouse(observationModel: ObservationModel, simulationSettings: Simulati
 }
 
 object Warehouse {
-  def props(observationModel: ObservationModel, simulationSettings: SimulationSettings, statistics: ActorRef) =
-    Props(new Warehouse(observationModel, simulationSettings, statistics))
+  def props(simulationSettings: SimulationSettings, statistics: ActorRef) =
+    Props(new Warehouse(simulationSettings, statistics))
 
   case class In(registrationNumber: RegistrationNumber)
   case class Out(registrationNumber: RegistrationNumber)

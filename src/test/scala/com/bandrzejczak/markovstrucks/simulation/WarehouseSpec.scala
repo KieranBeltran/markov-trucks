@@ -18,13 +18,14 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
     0,
     false,
     false,
-    None
+    None,
+    Nil
   )
 
   "Warehouse" should "let the container in" in {
     // given
     val statistics = TestProbe()
-    val warehouse = system.actorOf(Warehouse.props(Map(), TestSimulationSettings, statistics.ref))
+    val warehouse = system.actorOf(Warehouse.props(TestSimulationSettings, statistics.ref))
 
     // when
     warehouse ! In(RegistrationNumber("ABC"))
@@ -36,7 +37,14 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
   it should "let the container with mistaken number" in {
     // given
     val statistics = TestProbe()
-    val warehouse = system.actorOf(Warehouse.props(Map('A' -> ReadProbabilities('A', Map('X' -> 1.0))), TestSimulationSettings, statistics.ref))
+    val warehouse = system.actorOf(
+      Warehouse.props(
+        TestSimulationSettings.copy(
+          readProbabilities = List(ReadProbabilities('A', Map('X' -> 1.0)))
+        ),
+        statistics.ref
+      )
+    )
 
     // when
     warehouse ! In(RegistrationNumber("ABC"))
@@ -48,7 +56,7 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
   it should "not let out the container with an empty model" in {
     // given
     val statistics = TestProbe()
-    val warehouse = system.actorOf(Warehouse.props(Map(), TestSimulationSettings, statistics.ref))
+    val warehouse = system.actorOf(Warehouse.props(TestSimulationSettings, statistics.ref))
 
     // when
     warehouse ! Out(RegistrationNumber("ABC"))
@@ -60,7 +68,7 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
   it should "let out the container that was previously admitted" in {
     // given
     val statistics = TestProbe()
-    val warehouse = system.actorOf(Warehouse.props(Map(), TestSimulationSettings, statistics.ref))
+    val warehouse = system.actorOf(Warehouse.props(TestSimulationSettings, statistics.ref))
     warehouse ! In(RegistrationNumber("ABC"))
     statistics expectMsg Registered("ABC", "ABC")
 
@@ -76,13 +84,14 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
     val statistics = TestProbe()
     val warehouse = system.actorOf(
       Warehouse.props(
-        Map(
-          'A' -> ReadProbabilities('A', Map()),
-          'B' -> ReadProbabilities('B', Map('D' -> 0.4)),
-          'D' -> ReadProbabilities('D', Map('B' -> 0.6)),
-          'C' -> ReadProbabilities('C', Map())
+        TestSimulationSettings.copy(
+          readProbabilities = List(
+            ReadProbabilities('A', Map()),
+            ReadProbabilities('B', Map('D' -> 0.4)),
+            ReadProbabilities('D', Map('B' -> 0.6)),
+            ReadProbabilities('C', Map())
+          )
         ),
-        TestSimulationSettings,
         statistics.ref
       )
     )
@@ -103,7 +112,7 @@ class WarehouseSpec extends TestKit(ActorSystem("WarehouseSystem")) with FlatSpe
   it should "let out container automatically after a random period of time between 1 and 2 seconds (defined in settings)" in {
     // given
     val statistics = TestProbe()
-    val warehouse = system.actorOf(Warehouse.props(Map(), TestSimulationSettings, statistics.ref))
+    val warehouse = system.actorOf(Warehouse.props(TestSimulationSettings, statistics.ref))
 
     //when
     warehouse ! In(RegistrationNumber("ABC"))

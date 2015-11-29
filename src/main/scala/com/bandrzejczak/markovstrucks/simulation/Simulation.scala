@@ -1,7 +1,8 @@
 package com.bandrzejczak.markovstrucks.simulation
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.bandrzejczak.markovstrucks.domain.RegistrationNumber
+import com.bandrzejczak.markovstrucks.domain.ReadProbabilities.ObservationModel
+import com.bandrzejczak.markovstrucks.domain.{ReadProbabilities, RegistrationNumber}
 import com.bandrzejczak.markovstrucks.simulation.Simulation.{RegisterNext, Start}
 import com.bandrzejczak.markovstrucks.simulation.Warehouse.In
 
@@ -24,7 +25,7 @@ class Simulation(simulationSettings: SimulationSettings, warehouse: ActorRef) ex
   def inProgress(deadline: Option[Deadline]): Receive = {
     case RegisterNext =>
       warehouse ! In(simulationSettings.nextRegistrationNumber())
-      if(deadline.isDefined && deadline.get.hasTimeLeft()) {
+      if (deadline.isDefined && deadline.get.hasTimeLeft()) {
         scheduleNextRegistration()
       }
   }
@@ -39,7 +40,9 @@ object Simulation {
   def props(simulationSettings: SimulationSettings, warehouse: ActorRef) = Props(new Simulation(simulationSettings, warehouse))
 
   case object Start
+
   case object RegisterNext
+
 }
 
 case class SimulationSettings(
@@ -50,7 +53,8 @@ case class SimulationSettings(
                                registrationNumberLength: Int,
                                lettersInRegistrationNumber: Boolean,
                                digitsInRegistrationNumber: Boolean,
-                               simulationTimeout: Option[Int]
+                               simulationTimeout: Option[Int],
+                               readProbabilities: List[ReadProbabilities]
                              ) {
 
   def nextRegistrationTime(): FiniteDuration =
@@ -73,5 +77,7 @@ case class SimulationSettings(
     )
 
   private def canBeAPartOfRegistrationNumber(char: Char) =
-   (digitsInRegistrationNumber && char.isDigit) || (lettersInRegistrationNumber && char.isLetter)
+    (digitsInRegistrationNumber && char.isDigit) || (lettersInRegistrationNumber && char.isLetter)
+
+  lazy val observationModel: ObservationModel = readProbabilities.map(p => p.correctCharacter -> p).toMap
 }

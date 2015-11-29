@@ -30,14 +30,14 @@ object Main extends App with DefaultJsonProtocol with SprayJsonSupport {
       } ~
       path("start") {
         post {
-          implicit def SimulationSettingsFormat = jsonFormat8(SimulationSettings)
+          implicit def ReadProbabilitiesFormat = jsonFormat2(ReadProbabilities.apply)
+          implicit def SimulationSettingsFormat = jsonFormat9(SimulationSettings)
           entity(as[SimulationSettings]) { settings =>
             system.actorOf(
               Simulation.props(
                 settings,
                 system.actorOf(
                   Warehouse.props(
-                    ReadProbabilities.emptyObservationModel,
                     settings,
                     statistics
                   )
