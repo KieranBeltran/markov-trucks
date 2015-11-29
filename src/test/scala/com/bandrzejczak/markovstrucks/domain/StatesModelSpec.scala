@@ -1,4 +1,4 @@
-package com.bandrzejczak.markovstrucks
+package com.bandrzejczak.markovstrucks.domain
 
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -53,7 +53,7 @@ class StatesModelSpec extends FlatSpec with Matchers {
     // then
     model.stateTransitionProbabilities shouldBe Map(
       StatesModel.InitialState -> List('a'),
-      'a' -> List('$')
+      'a' -> List(StatesModel.EndState)
     )
   }
 
@@ -95,6 +95,19 @@ class StatesModelSpec extends FlatSpec with Matchers {
       'x' -> List('y'),
       'y' -> List('z'),
       'z' -> List(StatesModel.EndState)
+    )
+  }
+
+  it should "allow duplicates" in {
+    // when
+    val model: StatesModel = new StatesModel(List("abc", "abc")).remove("abc")
+
+    // then
+    model.stateTransitionProbabilities shouldBe Map(
+      StatesModel.InitialState -> List('a'),
+      'a' -> List('b'),
+      'b' -> List('c'),
+      'c' -> List(StatesModel.EndState)
     )
   }
 

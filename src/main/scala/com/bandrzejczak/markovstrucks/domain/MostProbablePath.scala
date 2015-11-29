@@ -1,7 +1,7 @@
-package com.bandrzejczak.markovstrucks
+package com.bandrzejczak.markovstrucks.domain
 
-import com.bandrzejczak.markovstrucks.ReadProbabilities.ObservationModel
-import com.bandrzejczak.markovstrucks.StatesModel.{EndState, InitialState}
+import com.bandrzejczak.markovstrucks.domain.ReadProbabilities.ObservationModel
+import com.bandrzejczak.markovstrucks.domain.StatesModel.{EndState, InitialState}
 
 
 class MostProbablePath private(statesModel: StatesModel, observationModel: ObservationModel) {

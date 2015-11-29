@@ -1,4 +1,4 @@
-package com.bandrzejczak.markovstrucks
+package com.bandrzejczak.markovstrucks.domain
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Map

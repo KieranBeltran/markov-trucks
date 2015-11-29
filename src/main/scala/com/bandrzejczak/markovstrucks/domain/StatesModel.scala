@@ -1,6 +1,6 @@
-package com.bandrzejczak.markovstrucks
+package com.bandrzejczak.markovstrucks.domain
 
-import com.bandrzejczak.markovstrucks.StatesModel.{EndState, InitialState}
+import com.bandrzejczak.markovstrucks.domain.StatesModel.{EndState, InitialState}
 
 class StatesModel(registrationNumbers: List[String]) {
 
@@ -34,7 +34,7 @@ class StatesModel(registrationNumbers: List[String]) {
   }
 
   def remove(registrationNumber: String): StatesModel = {
-    new StatesModel(registrationNumbers.filter(_ != registrationNumber))
+    new StatesModel(registrationNumbers diff List(registrationNumber))
   }
 
 }
@@ -42,4 +42,5 @@ class StatesModel(registrationNumbers: List[String]) {
 object StatesModel {
   val InitialState: Char = '#'
   val EndState: Char = '$'
+  lazy val empty = new StatesModel(Nil)
 }

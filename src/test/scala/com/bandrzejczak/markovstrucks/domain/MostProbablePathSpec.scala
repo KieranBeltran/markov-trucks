@@ -1,4 +1,4 @@
-package com.bandrzejczak.markovstrucks
+package com.bandrzejczak.markovstrucks.domain
 
 import org.scalatest.{FlatSpec, Matchers, OptionValues}
 
