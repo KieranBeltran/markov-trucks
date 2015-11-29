@@ -47,7 +47,7 @@ class MostProbablePath private(statesModel: StatesModel, observationModel: Obser
     }
 
     private def mostProbablePathWithTransitionToCurrentState(remainingObservations: List[Char]): Option[PathProbability] = {
-      statesModel.availableStates.map { previousState =>
+      statesModel.statesWithTransitionTo(currentState).map { previousState =>
         mostProbablePathEndingInState(previousState).forObservations(remainingObservations)
       }.collect {
         case Some(PathProbability(previousPath, previousProbability)) =>

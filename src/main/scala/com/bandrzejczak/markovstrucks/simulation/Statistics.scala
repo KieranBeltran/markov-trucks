@@ -89,7 +89,6 @@ object Statistics extends DefaultJsonProtocol with SprayJsonSupport {
     val ref = system.actorOf(Statistics.props)
     val source = Source.apply(ActorPublisher(ref))
     val statisticsFlow = Flow.fromSinkAndSource[Any, StatisticsInfo](Sink.ignore, source)
-      //.map(info => TextMessage(info.write))
     (ref, statisticsFlow)
   }
 

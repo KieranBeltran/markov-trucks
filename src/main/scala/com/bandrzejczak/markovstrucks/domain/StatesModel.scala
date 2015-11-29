@@ -3,6 +3,9 @@ package com.bandrzejczak.markovstrucks.domain
 import com.bandrzejczak.markovstrucks.domain.StatesModel.{EndState, InitialState}
 
 class StatesModel(registrationNumbers: List[String]) {
+  def statesWithTransitionTo(currentState: Char): Iterable[Char] = stateTransitionProbabilities.filter {
+    case (_, states) => states.contains(currentState)
+  }.keys
 
   val availableStates = registrationNumbers.foldLeft(Set.empty[Char])(_ ++ _.toSet)
 
