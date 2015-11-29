@@ -2,24 +2,22 @@ package com.bandrzejczak.markovstrucks
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.RouteResult._
 import akka.stream.ActorMaterializer
-import com.bandrzejczak.markovstrucks.domain.{ReadProbabilities, RegistrationNumber}
-import com.bandrzejczak.markovstrucks.simulation.Warehouse.In
-import com.bandrzejczak.markovstrucks.simulation.{Statistics, Warehouse}
+import com.bandrzejczak.markovstrucks.domain.ReadProbabilities
+import com.bandrzejczak.markovstrucks.simulation.Simulation.Start
+import com.bandrzejczak.markovstrucks.simulation.{Simulation, SimulationSettings, Statistics, Warehouse}
+import spray.json.DefaultJsonProtocol
 
-import scala.concurrent.duration._
-import scala.util.Random
-
-object Main extends App {
+object Main extends App with DefaultJsonProtocol with SprayJsonSupport {
   implicit val system: ActorSystem = ActorSystem("name")
   implicit val ec = system.dispatcher
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val (statistics, statisticsFlow) = Statistics.create
-  val warehouse = system.actorOf(Warehouse.props(ReadProbabilities.emptyObservationModel, statistics))
 
   val routes =
     pathPrefix("api") {
@@ -31,11 +29,23 @@ object Main extends App {
         }
       } ~
       path("start") {
-        get {
-          system.scheduler.schedule(1.second, 500.millis) {
-            warehouse ! In(RegistrationNumber(Random.alphanumeric.take(6).mkString.toUpperCase))
+        post {
+          implicit def SimulationSettingsFormat = jsonFormat8(SimulationSettings)
+          entity(as[SimulationSettings]) { settings =>
+            system.actorOf(
+              Simulation.props(
+                settings,
+                system.actorOf(
+                  Warehouse.props(
+                    ReadProbabilities.emptyObservationModel,
+                    settings,
+                    statistics
+                  )
+                )
+              )
+            ) ! Start
+            complete(200 -> "ok")
           }
-          complete("ok")
         }
       }
     } ~

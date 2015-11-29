@@ -5,10 +5,7 @@ import com.bandrzejczak.markovstrucks.domain.ReadProbabilities.ObservationModel
 import com.bandrzejczak.markovstrucks.domain.{MostProbablePath, RegistrationNumber, StatesModel}
 import com.bandrzejczak.markovstrucks.simulation.Warehouse._
 
-import scala.concurrent.duration._
-import scala.util.Random
-
-class Warehouse(observationModel: ObservationModel, statistics: ActorRef) extends Actor {
+class Warehouse(observationModel: ObservationModel, simulationSettings: SimulationSettings, statistics: ActorRef) extends Actor {
   override def receive: Receive = warehouse(StatesModel.empty)
 
   def warehouse(statesModel: StatesModel): Receive = {
@@ -32,7 +29,7 @@ class Warehouse(observationModel: ObservationModel, statistics: ActorRef) extend
 
   def scheduleLettingOut(registrationNumber: RegistrationNumber) = {
     import context.dispatcher
-    context.system.scheduler.scheduleOnce((Random.nextInt(9) + 1).seconds, self, Out(registrationNumber))
+    context.system.scheduler.scheduleOnce(simulationSettings.driveOutTime(), self, Out(registrationNumber))
   }
 
   def unregisterContainer(statesModel: StatesModel, registrationNumber: RegistrationNumber): Unit = {
@@ -50,7 +47,8 @@ class Warehouse(observationModel: ObservationModel, statistics: ActorRef) extend
 }
 
 object Warehouse {
-  def props(observationModel: ObservationModel, statistics: ActorRef) = Props(new Warehouse(observationModel, statistics))
+  def props(observationModel: ObservationModel, simulationSettings: SimulationSettings, statistics: ActorRef) =
+    Props(new Warehouse(observationModel, simulationSettings, statistics))
 
   case class In(registrationNumber: RegistrationNumber)
   case class Out(registrationNumber: RegistrationNumber)
