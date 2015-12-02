@@ -22,7 +22,7 @@ class Simulation(simulationSettings: SimulationSettings, warehouse: ActorRef) ex
   def inProgress(deadline: Option[Deadline]): Receive = {
     case RegisterNext =>
       warehouse ! In(simulationSettings.nextRegistrationNumber())
-      if (deadline.isDefined && deadline.get.hasTimeLeft()) {
+      if (deadline.isEmpty || deadline.get.hasTimeLeft()) {
         scheduleNextRegistration()
       }
   }

@@ -2,21 +2,22 @@ package com.bandrzejczak.markovstrucks.domain
 
 import com.bandrzejczak.markovstrucks.domain.StatesModel.{EndState, InitialState}
 
-class StatesModel(registrationNumbers: List[String]) {
+class StatesModel(val stateTransitionProbabilities: Map[Char, List[Char]]) {
+
   def statesWithTransitionTo(currentState: Char): Iterable[Char] = stateTransitionProbabilities.filter {
     case (_, states) => states.contains(currentState)
   }.keys
 
-  val availableStates = registrationNumbers.foldLeft(Set.empty[Char])(_ ++ _.toSet)
+  def probabilityOfTransition(from: Char, to: Char): Double = {
+    stateTransitionProbabilities.get(from).map { transitionsTo =>
+      transitionsTo.count(_ == to).toDouble / transitionsTo.size
+    }.getOrElse(0.0)
+  }
 
-  lazy val stateTransitionProbabilities: Map[Char, List[Char]] = computeStateTransitionProbabilities()
-
-  private def computeStateTransitionProbabilities(): Map[Char, List[Char]] = {
-    registrationNumbers.foldLeft(Map.empty[Char, List[Char]]) {
-      case (probabilities, registrationNumber) =>
-        val transitions = (InitialState + registrationNumber).zip(registrationNumber + EndState)
-        transitions.foldLeft(probabilities)(addTransition)
-    }
+  def add(registrationNumber: String): StatesModel = {
+    val transitions = (InitialState + registrationNumber).zip(registrationNumber + EndState)
+    val newProbabilities = transitions.foldLeft(stateTransitionProbabilities)(addTransition)
+    new StatesModel(newProbabilities)
   }
 
   private def addTransition(probabilities: Map[Char, List[Char]], transition: (Char, Char)): Map[Char, List[Char]] = {
@@ -26,18 +27,19 @@ class StatesModel(registrationNumbers: List[String]) {
     }
   }
 
-  def probabilityOfTransition(from: Char, to: Char): Double = {
-    stateTransitionProbabilities.get(from).map { transitionsTo =>
-      transitionsTo.count(_ == to).toDouble / transitionsTo.size
-    }.getOrElse(0.0)
-  }
-
-  def add(registrationNumber: String): StatesModel = {
-    new StatesModel(registrationNumber :: registrationNumbers)
-  }
-
   def remove(registrationNumber: String): StatesModel = {
-    new StatesModel(registrationNumbers diff List(registrationNumber))
+    val transitions = (InitialState + registrationNumber).zip(registrationNumber + EndState)
+    val newProbabilities = transitions.foldLeft(stateTransitionProbabilities)(removeTransition)
+    new StatesModel(newProbabilities)
+  }
+
+  private def removeTransition(probabilities: Map[Char, List[Char]], transition: (Char, Char)): Map[Char, List[Char]] = {
+    val (from, to) = transition
+    probabilities.get(from) match {
+      case Some(`to` :: Nil) => probabilities - transition._1
+      case Some(transitions) => probabilities + (transition._1 -> (transitions diff List(to)))
+      case None => probabilities
+    }
   }
 
 }
@@ -45,5 +47,5 @@ class StatesModel(registrationNumbers: List[String]) {
 object StatesModel {
   val InitialState: Char = '#'
   val EndState: Char = '$'
-  lazy val empty = new StatesModel(Nil)
+  lazy val empty = new StatesModel(Map())
 }

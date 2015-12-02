@@ -7,14 +7,14 @@ class MostProbablePathSpec extends FlatSpec with Matchers with ScalaFutures with
 
   "Most probable path" should "find the only path in the model" in {
     MostProbablePath.withModels(
-      new StatesModel(List("abc")),
+      StatesModel.empty.add("abc"),
       Map()
     ).forObservations("abc").futureValue.value shouldBe "abc"
   }
 
   it should "find the only path in the model with mistakes defined" in {
     MostProbablePath.withModels(
-      new StatesModel(List("abc")),
+      StatesModel.empty.add("abc"),
       Map(
         'a' -> ReadProbabilities('a', Map('x' -> 0.1)),
         'b' -> ReadProbabilities('b', Map('y' -> 0.1)),
@@ -25,7 +25,7 @@ class MostProbablePathSpec extends FlatSpec with Matchers with ScalaFutures with
 
   it should "find the correct path in the confusing model with almost identical characters" in {
     MostProbablePath.withModels(
-      new StatesModel(List("abc", "adc")), //model contains both abc and adc paths
+      StatesModel.empty.add("abc").add("adc"), //model contains both abc and adc paths
       Map(
         'a' -> ReadProbabilities('a', Map()),
         'b' -> ReadProbabilities('b', Map('d' -> 0.6)),  // 40% = b, 60% = d
@@ -37,13 +37,12 @@ class MostProbablePathSpec extends FlatSpec with Matchers with ScalaFutures with
 
   it should "not find a correct path if the model has no connections to end state" in {
     // given
-    val modelWithoutEndState = new StatesModel(List()) {
-      override val availableStates: Set[Char] = Set('a', 'b')
-      override lazy val stateTransitionProbabilities: Map[Char, List[Char]] = Map(
+    val modelWithoutEndState = new StatesModel(
+      Map(
         StatesModel.InitialState -> List('a'),
         'a' -> List('b')
       )
-    }
+    )
 
     // expect
     MostProbablePath.withModels(
@@ -54,7 +53,7 @@ class MostProbablePathSpec extends FlatSpec with Matchers with ScalaFutures with
 
   it should "not find a correct path if observations have no connection to the model" in {
     MostProbablePath.withModels(
-      new StatesModel(List("abc", "adc")), //model contains both abc and adc paths
+      StatesModel.empty.add("abc").add("adc"), //model contains both abc and adc paths
       Map()
     ).forObservations("axc").futureValue shouldBe 'empty
   }
