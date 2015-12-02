@@ -3,8 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <title>Markov's trucks</title>
+    <link rel="stylesheet" href="style/bootstrap.min.css" />
+    <link rel="stylesheet" href="style/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="style/style.css" />
 </head>
-<body>
-    Hello world!
+<body ng-app="App" ng-controller="AppController" ng-cloak>
+    <div ng-hide="simulation" style="width: 100%;">
+        <br />
+        <br />
+        <div class="col-lg-5">
+            <form novalidate>
+                <fieldset class="form-group">
+                    <label for="minRegistrationsPause">Minimal pause between incoming containers [s]</label>
+                    <input type="number" min="0" max="100" step="1" class="form-control" id="minRegistrationsPause" ng-model="settings.minRegistrationsPause">
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="maxRegistrationsPause">Maximum pause between incoming containers [s]</label>
+                    <input type="number" min="0" max="100" step="1" class="form-control" id="maxRegistrationsPause" ng-model="settings.maxRegistrationsPause">
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="minWarehouseStay">Minimal time the container can stay in a warehouse [s]</label>
+                    <input type="number" min="0" max="100" step="1" class="form-control" id="minWarehouseStay" ng-model="settings.minWarehouseStay">
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="maxWarehouseStay">Maximum time the container can stay in a warehouse [s]</label>
+                    <input type="number" min="0" max="100" step="1" class="form-control" id="maxWarehouseStay" ng-model="settings.maxWarehouseStay">
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="registrationNumberLength">Number of characters in a registration number</label>
+                    <input type="number" min="0" max="20" step="1" class="form-control" id="registrationNumberLength" ng-model="settings.registrationNumberLength">
+                </fieldset>
+                <div class="checkbox">
+                    <label for="lettersInRegistrationNumber" style="font-weight: bold">
+                        <input type="checkbox" id="lettersInRegistrationNumber" ng-model="settings.lettersInRegistrationNumber">
+                        Can registration number contain letters?
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="digitsInRegistrationNumber" style="font-weight: bold">
+                        <input type="checkbox" id="digitsInRegistrationNumber" ng-model="settings.digitsInRegistrationNumber">
+                        Can registration number contain digits?
+                    </label>
+                </div>
+                <fieldset class="form-group">
+                    <label for="simulationTimeout">Simulation lengths [s] (leave empty for infinite simulation)</label>
+                    <input type="number" min="0" step="1" class="form-control" id="simulationTimeout" ng-model="settings.simulationTimeout">
+                </fieldset><br />
+            </form><br />
+            <button class="btn btn-lg btn-success" ng-click="startSimulation()">Start simulation!</button>
+        </div>
+        <div class=col-xs-7 col-md-offset-5">
+            <strong>Mistakes probabilities</strong><br />
+            <div ng-repeat="character in settings.readProbabilities track by character.correctCharacter">
+                <strong>{{character.correctCharacter}}</strong> can be mistaken as:<br />
+                    <span ng-repeat="mistake in character.mistakes track by $index">
+                        <input type="text" maxlength="1" ng-model="mistake.mistake" style="width: 30px" /> with probability <input type="number" min="0" max="1" step="0.01" ng-model="mistake.probability" /> <a ng-click="removeMistake(character, mistake)">Delete</a></a><br />
+                    </span>
+                    <span ng-show="character.mistakes.length === 0">
+                        No mistakes
+                    </span>
+                <button class="btn btn-sm btn-success" ng-click="addMistake(character)">Add mistake</button>
+                <hr />
+            </div>
+        </div>
+    </div>
+    <div ng-show="simulation">
+        <div class="warehouse">
+            <div class="in">
+                <h3>Incoming</h3>
+                <div ng-show="data.in">
+                    <span class="read">Read number:<br />
+                    {{data.in.readNumber}}<br /></span>
+                    Actual number:<br />
+                    {{data.in.actualNumber}}
+                </div>
+                <div ng-hide="data.in">
+                    No incoming reads available yet
+                </div>
+            </div>
+            <div class="inside">
+                <h3>Currently in the warehouse</h3>
+                <div class="warehouse-content">
+                    <div class="number" ng-repeat="number in data.warehouse track by $index">{{number}}</div>
+                </div>
+            </div>
+            <div class="out {{data.outStatus}}">
+                <h3>Outgoing</h3>
+                <div ng-show="data.out">
+                    <span class="read">Read number:<br />
+                    {{data.out.readNumber}}<br /></span>
+                    Actual number:<br />
+                    {{data.out.actualNumber}}
+                </div>
+                <div ng-hide="data.out">
+                    No outgoing reads available yet
+                </div>
+            </div>
+        </div>
+
+        <div class="statistics">
+            <div class="mistakes">
+                Mistakenly let out (FAR)<br /><br /><br />
+                <span class="statistic">{{data.mistakenlyLetOut}}</span>
+            </div>
+            <div class="denials">
+                Denied (FRR)<br /><br /><br /><br />
+                <span class="statistic">{{data.denied}}</span>
+            </div>
+            <div class="successes">
+                Successful<br /><br /><br /><br />
+                <span class="statistic">{{data.successful}}</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="scripts/lodash.min.js"></script>
+    <script type="text/javascript" src="scripts/angular.min.js"></script>
+    <script type="text/javascript" src="scripts/script.js"></script>
 </body>
 </html>

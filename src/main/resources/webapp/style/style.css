@@ -1,0 +1,97 @@
+.warehouse {
+    display: flex;
+    align-items: center;
+}
+
+.in, .out, .inside {
+    border: 1px solid #ddd;
+}
+
+.in, .out {
+    width: 200px;
+    height: 200px;
+    min-height: 200px;
+    margin: 20px;
+    text-align: center;
+}
+
+.inside {
+    width: 500px;
+    min-height: 500px;
+    text-align: center;
+}
+
+.inside > h3 {
+    width: 100%;
+    text-align: center;
+}
+
+.warehouse-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 auto;
+}
+
+.number {
+    border: 1px solid #f0f0f0;
+    margin: 5px;
+    font-size: 120%;
+    width: 100px;
+    text-align: center;
+}
+
+.read {
+    font-weight: bold;
+    font-size: 150%;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.statistics {
+    display: flex;
+    align-items: center;
+}
+
+.statistics > div {
+    width: 200px;
+    height: 200px;
+    margin: 20px;
+    font-weight: bold;
+    font-size: 120%;
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.statistic {
+    font-size: 150%;
+}
+
+.mistakes {
+    color: #b37000;
+}
+
+.denials {
+    color: #a42129;
+}
+
+.successes {
+    color: #1b8023;
+}
+
+.none {
+    background-color: white;
+}
+
+.ok {
+    background-color: #95ff96;
+}
+
+.mistake {
+    background-color: #ffd8b2;
+}
+
+.denial {
+    background-color: #ffb0c1;
+}

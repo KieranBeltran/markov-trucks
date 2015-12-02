@@ -47,21 +47,20 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
 
     // when
     statistics ! LetOut("ABC", "XYZ", "DDD")
-    mockSink.requestNext() shouldBe LeaveRead(Read("ABC", "XYZ"))
 
     // then
     mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
+    mockSink.requestNext() shouldBe LeaveRead(Read("ABC", "XYZ"), Mistake.toString)
   }
 
   it should "report one mistake for letting out container that was never registered" in {
     // given
     val (statistics, statisticsFlow) = Statistics.create
     val (_, mockSink) = statisticsFlow.runWith(TestSource.probe[Nothing], TestSink.probe[StatisticsInfo])
-    mockSink.request(2)
+    mockSink.request(1)
 
     // when
     statistics ! LetOut("ABC", "XYZ", "DDD")
-    mockSink.requestNext()
 
     // then
     mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
@@ -71,14 +70,13 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     // given
     val (statistics, statisticsFlow) = Statistics.create
     val (_, mockSink) = statisticsFlow.runWith(TestSource.probe[Nothing], TestSink.probe[StatisticsInfo])
-    mockSink.request(4)
+    mockSink.request(3)
     statistics ! Registered("ABC", "XYZ")
     mockSink.requestNext()
     mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0, 0)
 
     // when
     statistics ! LetOut("XYZ", "XYZ", "XYZ")
-    mockSink.requestNext()
 
     // then
     mockSink.requestNext() shouldBe WarehouseState(Set(), 1, 0, 0)
@@ -88,14 +86,13 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     // given
     val (statistics, statisticsFlow) = Statistics.create
     val (_, mockSink) = statisticsFlow.runWith(TestSource.probe[Nothing], TestSink.probe[StatisticsInfo])
-    mockSink.request(4)
+    mockSink.request(3)
     statistics ! Registered("ABC", "XYZ")
     mockSink.requestNext()
     mockSink.requestNext() shouldBe WarehouseState(Set("XYZ"), 0, 0, 0)
 
     // when
     statistics ! LetOut("ABC", "DEF", "XYZ")
-    mockSink.requestNext()
 
     // then
     mockSink.requestNext() shouldBe WarehouseState(Set(), 0, 0, 1)
@@ -111,7 +108,7 @@ class StatisticsSpec extends TestKit(ActorSystem("StatisticsSystem")) with FlatS
     statistics ! Denied("ABC", "XYZ")
 
     // then
-    mockSink.requestNext() shouldBe LeaveRead(Read("ABC", "XYZ"))
+    mockSink.requestNext() shouldBe LeaveRead(Read("ABC", "XYZ"), Denial.toString)
   }
 
   it should "report one denial" in {
