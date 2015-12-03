@@ -1,8 +1,12 @@
 'use strict';
 
 angular.module('App', [])
-  .controller('AppController', function ($scope, $log, $http) {
+  .controller('AppController', function ($scope, $http, $interval) {
     var ws = new WebSocket('ws://localhost:8080/api/events');
+
+    $interval(function () {
+      ws.send('ping');
+    }, 5000);
     $scope.simulation = false;
     $scope.settings = {
       minRegistrationsPause: 0,
@@ -83,8 +87,6 @@ angular.module('App', [])
       });
       return obj;
     }
-
-    $log.info($scope.settings.readProbabilities);
 
     $scope.data = {
       mistakenlyLetOut: 0,
